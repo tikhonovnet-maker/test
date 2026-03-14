@@ -1,0 +1,1781 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>КПТшка</title>
+<link href="https://fonts.googleapis.com/css2?family=Unbounded:wght@300;400;600&family=Golos+Text:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #f0ede8;
+  --surface: #faf8f5;
+  --surface2: #e8e4dd;
+  --accent: #2d5a3d;
+  --accent2: #7ab08a;
+  --accent3: #c8b89a;
+  --text: #1a1a18;
+  --text2: #6b6860;
+  --text3: #a8a49e;
+  --danger: #c0392b;
+  --shadow: 0 2px 12px rgba(0,0,0,0.06), 0 1px 3px rgba(0,0,0,0.04);
+  --shadow-hover: 0 8px 32px rgba(0,0,0,0.12), 0 2px 8px rgba(0,0,0,0.06);
+  --r: 16px;
+  --r-sm: 10px;
+  --ease: 0.3s cubic-bezier(0.4,0,0.2,1);
+}
+*, *::before, *::after { margin:0; padding:0; box-sizing:border-box; }
+html, body { height:100%; font-family:'Golos Text',sans-serif; background:var(--bg); color:var(--text); overflow:hidden; }
+
+.screen {
+  position:fixed; inset:0;
+  display:flex; flex-direction:column;
+  background:var(--bg);
+  transform:translateX(100%);
+  transition:transform var(--ease);
+  will-change:transform;
+}
+.screen.active  { transform:translateX(0); }
+.screen.behind  { transform:translateX(-40px); }
+
+.screen-body {
+  flex:1;
+  overflow-y:auto;
+  overflow-x:hidden;
+  padding:0 32px 60px;
+}
+
+.topbar {
+  display:flex; align-items:center; gap:14px;
+  padding:16px 32px;
+  background:var(--bg);
+  border-bottom:1px solid var(--surface2);
+  flex-shrink:0;
+}
+.logo { font-family:'Unbounded',sans-serif; font-size:17px; font-weight:600; color:var(--accent); letter-spacing:-.5px; }
+.logo span { color:var(--text3); font-weight:300; }
+.spacer { flex:1; }
+.back-btn {
+  width:34px; height:34px; border-radius:50%;
+  background:var(--surface2); border:none; cursor:pointer;
+  display:flex; align-items:center; justify-content:center;
+  color:var(--text); flex-shrink:0;
+  transition:background var(--ease), transform .15s;
+}
+.back-btn:hover { background:var(--accent2); color:#fff; transform:translateX(-2px); }
+.topbar-title { font-family:'Unbounded',sans-serif; font-size:13px; font-weight:400; color:var(--text2); }
+
+.btn-primary {
+  display:inline-flex; align-items:center; gap:8px;
+  background:var(--accent); color:#fff;
+  border:none; border-radius:50px; padding:11px 20px;
+  font-family:'Golos Text',sans-serif; font-size:14px; font-weight:600;
+  cursor:pointer; white-space:nowrap;
+  box-shadow:0 4px 16px rgba(45,90,61,.25);
+  transition:background var(--ease), transform .15s;
+}
+.btn-primary:hover { background:#234830; transform:translateY(-1px); }
+
+.btn-secondary {
+  display:inline-flex; align-items:center; gap:8px;
+  background:var(--surface); color:var(--accent);
+  border:2px solid var(--surface2); border-radius:50px; padding:9px 18px;
+  font-family:'Golos Text',sans-serif; font-size:14px; font-weight:500;
+  cursor:pointer; white-space:nowrap;
+  transition:background var(--ease), border-color var(--ease);
+}
+.btn-secondary:hover { background:var(--surface2); border-color:var(--accent2); }
+
+.btn-ghost {
+  padding:11px 20px; border-radius:50px;
+  border:2px solid var(--surface2); background:transparent;
+  font-family:'Golos Text',sans-serif; font-size:14px; font-weight:500; color:var(--text2);
+  cursor:pointer; transition:border-color var(--ease), color var(--ease);
+}
+.btn-ghost:hover { border-color:var(--text3); color:var(--text); }
+
+.page-header {
+  padding:22px 0 18px;
+  display:flex; align-items:flex-end; justify-content:space-between; gap:16px;
+}
+.page-title { font-family:'Unbounded',sans-serif; font-size:26px; font-weight:600; line-height:1.2; }
+.page-subtitle { font-size:13px; color:var(--text3); margin-top:5px; }
+
+.search-wrap { position:relative; margin-bottom:18px; }
+.search-wrap svg { position:absolute; left:15px; top:50%; transform:translateY(-50%); color:var(--text3); pointer-events:none; }
+.search-input {
+  width:100%; padding:12px 15px 12px 44px; border-radius:50px;
+  border:2px solid transparent; background:var(--surface);
+  font-family:'Golos Text',sans-serif; font-size:14px; color:var(--text);
+  outline:none; box-shadow:var(--shadow);
+  transition:border-color var(--ease), box-shadow var(--ease);
+}
+.search-input:focus { border-color:var(--accent2); box-shadow:0 0 0 4px rgba(122,176,138,.15); }
+.search-input::placeholder { color:var(--text3); }
+
+@keyframes fadeUp { from{opacity:0;transform:translateY(14px)} to{opacity:1;transform:translateY(0)} }
+
+.client-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(270px,1fr)); gap:14px; }
+.client-card {
+  background:var(--surface); border-radius:var(--r); padding:20px;
+  cursor:pointer; border:2px solid transparent; box-shadow:var(--shadow);
+  animation:fadeUp .35s ease both;
+  transition:border-color var(--ease), box-shadow var(--ease), transform var(--ease);
+}
+.client-card:hover { border-color:var(--accent2); box-shadow:var(--shadow-hover); transform:translateY(-3px); }
+
+.client-avatar {
+  width:46px; height:46px; border-radius:50%;
+  background:linear-gradient(135deg,var(--accent2),var(--accent));
+  display:flex; align-items:center; justify-content:center;
+  font-family:'Unbounded',sans-serif; font-size:15px; font-weight:600; color:#fff;
+  margin-bottom:12px;
+}
+.client-name { font-family:'Unbounded',sans-serif; font-size:13px; font-weight:600; margin-bottom:3px; }
+.client-meta { font-size:12px; color:var(--text3); margin-bottom:12px; }
+.tags { display:flex; flex-wrap:wrap; gap:5px; }
+.tag { font-size:11px; font-weight:500; padding:3px 9px; border-radius:50px; background:var(--surface2); color:var(--text2); white-space:nowrap; }
+.tag.green { background:rgba(122,176,138,.2); color:var(--accent); }
+.client-footer { display:flex; align-items:center; justify-content:space-between; margin-top:14px; padding-top:12px; border-top:1px solid var(--surface2); font-size:12px; color:var(--text3); }
+.client-footer strong { color:var(--text2); font-weight:600; }
+.empty-state { text-align:center; padding:70px 0; color:var(--text3); grid-column:1/-1; }
+.empty-state svg { margin-bottom:14px; opacity:.3; }
+.empty-state p { font-size:14px; }
+
+.profile-hero {
+  display:flex; align-items:center; gap:16px; flex-wrap:wrap;
+  padding:20px 0 22px; border-bottom:1px solid var(--surface2); margin-bottom:24px;
+}
+.profile-hero-info { flex:1; min-width:0; }
+.profile-avatar {
+  width:68px; height:68px; border-radius:50%;
+  background:linear-gradient(135deg,var(--accent2),var(--accent));
+  display:flex; align-items:center; justify-content:center;
+  font-family:'Unbounded',sans-serif; font-size:22px; font-weight:600; color:#fff; flex-shrink:0;
+}
+.profile-name { font-family:'Unbounded',sans-serif; font-size:20px; font-weight:600; margin-bottom:3px; }
+.profile-sub { font-size:13px; color:var(--text3); }
+.btn-session {
+  display:inline-flex; align-items:center; gap:8px;
+  background:var(--accent); color:#fff; border:none; border-radius:50px;
+  padding:12px 20px; font-family:'Golos Text',sans-serif; font-size:14px; font-weight:600;
+  cursor:pointer; margin-left:auto; flex-shrink:0;
+  box-shadow:0 4px 20px rgba(45,90,61,.3);
+  transition:background var(--ease), transform .15s;
+}
+.btn-session:hover { background:#234830; transform:translateY(-2px); }
+
+.section-title { font-family:'Unbounded',sans-serif; font-size:11px; font-weight:600; color:var(--accent); margin:26px 0 12px; letter-spacing:.3px; }
+.fields-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(270px,1fr)); gap:10px; }
+.field-card { background:var(--surface); border-radius:var(--r-sm); padding:14px 16px; box-shadow:var(--shadow); animation:fadeUp .3s ease both; }
+.field-card.wide { grid-column:1/-1; }
+.field-label { font-size:10px; font-weight:600; text-transform:uppercase; letter-spacing:.8px; color:var(--text3); margin-bottom:5px; }
+.field-value { font-size:13px; color:var(--text); line-height:1.5; }
+.field-value.empty { color:var(--text3); font-style:italic; }
+
+.session-item { background:var(--surface); border-radius:var(--r-sm); padding:13px 16px; margin-bottom:8px; box-shadow:var(--shadow); border:2px solid transparent; animation:fadeUp .3s ease both; transition:border-color var(--ease); }
+.session-item:hover { border-color:var(--accent2); }
+.session-item-head { display:flex; align-items:center; justify-content:space-between; margin-bottom:6px; }
+.session-item-date { font-family:'Unbounded',sans-serif; font-size:11px; font-weight:600; }
+.session-item-badge { font-size:10px; font-weight:600; color:var(--accent); background:rgba(45,90,61,.1); padding:2px 8px; border-radius:50px; }
+.session-item-techs { display:flex; flex-wrap:wrap; gap:4px; margin-bottom:5px; }
+.session-item-techs .tag { font-size:10px; padding:2px 7px; }
+.session-item-note { font-size:11px; color:var(--text3); line-height:1.4; }
+.no-sessions { text-align:center; padding:20px; color:var(--text3); font-size:13px; background:var(--surface); border-radius:var(--r-sm); border:2px dashed var(--surface2); }
+
+.technique-grid { display:grid; grid-template-columns:repeat(4,1fr); gap:12px; }
+
+.tc-wrap {
+  perspective: 900px;
+  min-height: 155px;
+  animation: fadeUp .35s ease both;
+  cursor: pointer;
+}
+
+.tc-inner {
+  width:100%; height:100%; min-height:155px;
+  position:relative;
+  transform-style: preserve-3d;
+  transition: transform 0.55s cubic-bezier(0.4,0,0.2,1);
+}
+.tc-wrap.flipped .tc-inner { transform: rotateY(180deg); }
+
+.tc-front, .tc-back {
+  position:absolute; inset:0;
+  border-radius:var(--r); padding:18px;
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+  display:flex; flex-direction:column;
+  border: 2px solid transparent;
+  box-shadow: var(--shadow);
+}
+
+.tc-front {
+  background: var(--surface);
+  transition: border-color var(--ease), box-shadow var(--ease);
+}
+.tc-wrap:hover .tc-front { border-color:var(--accent2); box-shadow:var(--shadow-hover); }
+
+.tc-back {
+  background: linear-gradient(135deg, var(--accent), #1a3d28);
+  transform: rotateY(180deg);
+  border-color: transparent;
+  align-items: center; justify-content: center;
+}
+.tc-back-icon { font-size: 36px; opacity:.9; }
+
+.technique-num { font-family:'Unbounded',sans-serif; font-size:10px; font-weight:600; color:var(--text3); margin-bottom:8px; }
+.technique-name { font-family:'Unbounded',sans-serif; font-size:11px; font-weight:600; color:var(--text); margin-bottom:8px; line-height:1.35; flex:1; }
+.technique-desc { font-size:10px; color:var(--text3); line-height:1.5; }
+.technique-icon { position:absolute; bottom:12px; right:12px; width:26px; height:26px; border-radius:50%; background:var(--surface2); display:flex; align-items:center; justify-content:center; font-size:13px; transition:background var(--ease); }
+.tc-wrap:hover .technique-icon { background:var(--accent2); }
+
+.tmodal-overlay {
+  position:fixed; inset:0;
+  background: rgba(26,26,24,0.5);
+  backdrop-filter: blur(6px);
+  z-index: 600;
+  display:flex; align-items:center; justify-content:center;
+  padding: 24px;
+  opacity:0; pointer-events:none;
+  transition: opacity 0.3s;
+}
+.tmodal-overlay.open { opacity:1; pointer-events:all; }
+
+.tmodal {
+  background: var(--surface);
+  border-radius: 22px;
+  width: 100%; max-width: 680px;
+  max-height: 85vh; overflow-y: auto; overflow-x: hidden;
+  box-shadow: 0 32px 96px rgba(0,0,0,0.22);
+  transform: scale(0.93) translateY(20px);
+  transition: transform 0.4s cubic-bezier(0.34,1.2,0.64,1), opacity 0.3s;
+  opacity: 0;
+}
+.tmodal-overlay.open .tmodal { transform: scale(1) translateY(0); opacity:1; }
+
+.tmodal-hero {
+  background: linear-gradient(135deg, var(--accent), #1a3d28);
+  border-radius: 22px 22px 0 0;
+  padding: 28px 28px 24px;
+  display:flex; align-items:flex-start; gap:16px;
+  position: relative;
+}
+.tmodal-hero-icon { font-size: 44px; line-height:1; flex-shrink:0; }
+.tmodal-hero-text { flex:1; }
+.tmodal-num { font-family:'Unbounded',sans-serif; font-size:11px; font-weight:600; color:rgba(255,255,255,0.5); margin-bottom:6px; letter-spacing:.5px; }
+.tmodal-title { font-family:'Unbounded',sans-serif; font-size:20px; font-weight:600; color:#fff; line-height:1.2; margin-bottom:8px; }
+.tmodal-tagline { font-size:13px; color:rgba(255,255,255,0.75); line-height:1.5; }
+.tmodal-close {
+  position:absolute; top:18px; right:18px;
+  width:32px; height:32px; border-radius:50%;
+  border:none; background:rgba(255,255,255,0.15);
+  cursor:pointer; display:flex; align-items:center; justify-content:center;
+  color:#fff; transition:background .2s;
+}
+.tmodal-close:hover { background:rgba(255,255,255,0.3); }
+
+.tmodal-body { padding: 24px 28px 28px; }
+
+.tmodal-section { margin-bottom: 22px; }
+.tmodal-section-title {
+  font-family:'Unbounded',sans-serif; font-size:11px; font-weight:600;
+  color:var(--accent); text-transform:uppercase; letter-spacing:.8px;
+  margin-bottom:12px;
+}
+
+.tmodal-steps { display:flex; flex-direction:column; gap:10px; }
+.tmodal-step {
+  display:flex; gap:12px; align-items:flex-start;
+  background:var(--bg); border-radius:var(--r-sm); padding:12px 14px;
+}
+.tmodal-step-num {
+  font-family:'Unbounded',sans-serif; font-size:11px; font-weight:600;
+  color:#fff; background:var(--accent); border-radius:6px;
+  width:22px; height:22px; display:flex; align-items:center; justify-content:center;
+  flex-shrink:0; margin-top:1px;
+}
+.tmodal-step-text { font-size:13px; color:var(--text); line-height:1.5; }
+
+.tmodal-tips { display:flex; flex-direction:column; gap:8px; }
+.tmodal-tip {
+  display:flex; gap:10px; align-items:flex-start;
+  font-size:13px; color:var(--text2); line-height:1.5;
+}
+.tmodal-tip::before { content:'→'; color:var(--accent2); font-weight:700; flex-shrink:0; margin-top:1px; }
+
+.tmodal-questions { display:flex; flex-direction:column; gap:8px; }
+.tmodal-q {
+  background: rgba(122,176,138,0.1);
+  border-left: 3px solid var(--accent2);
+  border-radius: 0 var(--r-sm) var(--r-sm) 0;
+  padding: 10px 14px;
+  font-size:13px; color:var(--text); line-height:1.5; font-style:italic;
+}
+
+.tmodal-tags { display:flex; flex-wrap:wrap; gap:6px; }
+.tmodal-tag { font-size:12px; font-weight:500; padding:5px 12px; border-radius:50px; background:var(--surface2); color:var(--text2); }
+
+.session-bar {
+  position:fixed; bottom:0; left:0; right:0;
+  background:var(--bg); border-top:1px solid var(--surface2);
+  padding:12px 32px; display:flex; align-items:center; gap:12px; z-index:200;
+  transform:translateY(100%); transition:transform var(--ease);
+}
+.session-bar.show { transform:translateY(0); }
+.bar-count { font-size:13px; color:var(--text2); white-space:nowrap; }
+.bar-count strong { color:var(--accent); }
+.bar-note { flex:1; padding:9px 15px; border-radius:50px; border:2px solid var(--surface2); background:var(--surface); font-family:'Golos Text',sans-serif; font-size:13px; color:var(--text); outline:none; transition:border-color var(--ease); }
+.bar-note:focus { border-color:var(--accent2); }
+.bar-note::placeholder { color:var(--text3); }
+.btn-finish {
+  display:inline-flex; align-items:center; gap:7px;
+  background:var(--accent); color:#fff; border:none; border-radius:50px;
+  padding:10px 20px; font-family:'Golos Text',sans-serif; font-size:13px; font-weight:600;
+  cursor:pointer; white-space:nowrap;
+  box-shadow:0 4px 14px rgba(45,90,61,.3); transition:background var(--ease), transform .15s;
+}
+.btn-finish:hover { background:#234830; transform:translateY(-1px); }
+
+.cal-top {
+  display:flex; align-items:center; gap:10px;
+  padding:14px 0 12px; border-bottom:1px solid var(--surface2); margin-bottom:14px;
+}
+.cal-month { font-family:'Unbounded',sans-serif; font-size:18px; font-weight:600; flex:1; text-align:center; }
+.cal-nav-btn {
+  width:34px; height:34px; border-radius:50%;
+  background:var(--surface); border:2px solid var(--surface2);
+  cursor:pointer; display:flex; align-items:center; justify-content:center; color:var(--text2); flex-shrink:0;
+  transition:background var(--ease), border-color var(--ease), color var(--ease);
+}
+.cal-nav-btn:hover { background:var(--accent); border-color:var(--accent); color:#fff; }
+.cal-today { padding:7px 14px; border-radius:50px; background:var(--surface2); border:none; font-family:'Golos Text',sans-serif; font-size:12px; font-weight:600; color:var(--text2); cursor:pointer; transition:background var(--ease),color var(--ease); }
+.cal-today:hover { background:var(--accent); color:#fff; }
+
+.cal-grid { display:grid; grid-template-columns:repeat(7,1fr); gap:5px; }
+.cal-wd { text-align:center; font-size:10px; font-weight:600; text-transform:uppercase; letter-spacing:.7px; color:var(--text3); padding-bottom:8px; }
+.cal-wd.wknd { color:var(--accent3); }
+
+.cal-cell {
+  background:var(--surface); border-radius:10px; min-height:82px; padding:7px;
+  cursor:pointer; border:2px solid transparent; box-shadow:var(--shadow);
+  transition:border-color var(--ease), box-shadow var(--ease);
+}
+.cal-cell:hover { border-color:var(--accent2); box-shadow:var(--shadow-hover); }
+.cal-cell.other { background:transparent; box-shadow:none; opacity:.35; pointer-events:none; }
+.cal-cell.today { border-color:var(--accent); }
+.cal-cell.wknd .cal-dn { color:var(--accent3); }
+
+.cal-dn { font-family:'Unbounded',sans-serif; font-size:12px; font-weight:600; color:var(--text2); margin-bottom:5px; line-height:1; }
+.cal-cell.today .cal-dn { color:#fff; background:var(--accent); width:22px; height:22px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:10px; }
+
+.cal-ev { font-size:9px; font-weight:500; padding:2px 6px 2px 4px; border-radius:5px; background:rgba(122,176,138,.2); color:var(--accent); margin-bottom:2px; display:flex; align-items:center; gap:3px; overflow:hidden; white-space:nowrap; }
+.cal-ev.past { background:var(--surface2); color:var(--text3); }
+.ev-n { background:var(--accent); color:#fff; border-radius:3px; padding:0 3px; font-size:8px; font-weight:700; flex-shrink:0; }
+.cal-ev.past .ev-n { background:var(--text3); }
+
+.cal-overlay {
+  position:fixed; inset:0; background:rgba(26,26,24,.4); backdrop-filter:blur(4px);
+  z-index:500; display:flex; align-items:flex-end; justify-content:flex-end; padding:20px;
+  opacity:0; pointer-events:none; transition:opacity .3s;
+}
+.cal-overlay.open { opacity:1; pointer-events:all; }
+.cal-side {
+  background:var(--surface); border-radius:18px; width:360px; max-height:78vh;
+  overflow-y:auto; overflow-x:hidden;
+  padding:24px; position:relative;
+  transform:translateX(30px); transition:transform var(--ease);
+  box-shadow:0 20px 70px rgba(0,0,0,.18);
+}
+.cal-overlay.open .cal-side { transform:translateX(0); }
+.cal-side-hd { font-family:'Unbounded',sans-serif; font-size:14px; font-weight:600; margin-bottom:16px; text-transform:capitalize; }
+.cal-side-sub { font-size:10px; font-weight:600; text-transform:uppercase; letter-spacing:.8px; color:var(--accent); margin:14px 0 9px; }
+.cal-close { position:absolute; top:18px; right:18px; width:28px; height:28px; border-radius:50%; border:none; background:var(--surface2); cursor:pointer; display:flex; align-items:center; justify-content:center; color:var(--text2); transition:background .15s,color .15s; }
+.cal-close:hover { background:var(--danger); color:#fff; }
+
+.appt-item { display:flex; align-items:center; gap:10px; padding:10px 12px; border-radius:var(--r-sm); background:var(--bg); margin-bottom:6px; border:1px solid var(--surface2); }
+.appt-time { font-family:'Unbounded',sans-serif; font-size:11px; font-weight:600; color:var(--accent); min-width:38px; }
+.appt-info { flex:1; min-width:0; }
+.appt-name { font-size:12px; font-weight:600; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+.appt-badge { font-size:10px; color:var(--text3); margin-top:1px; }
+.appt-badge strong { color:var(--accent); }
+.appt-del { width:24px; height:24px; border-radius:50%; border:none; background:transparent; cursor:pointer; display:flex; align-items:center; justify-content:center; color:var(--text3); transition:background .15s,color .15s; flex-shrink:0; }
+.appt-del:hover { background:rgba(192,57,43,.12); color:var(--danger); }
+.no-appts { text-align:center; padding:16px; color:var(--text3); font-size:12px; border:2px dashed var(--surface2); border-radius:var(--r-sm); margin-bottom:4px; }
+
+.cal-form { display:flex; flex-direction:column; gap:8px; }
+.cal-form-row { display:grid; grid-template-columns:1fr 1fr; gap:8px; }
+.cal-form label { font-size:11px; font-weight:500; color:var(--text2); display:block; margin-bottom:4px; }
+.cal-form input, .cal-form select { width:100%; padding:9px 11px; border-radius:var(--r-sm); border:2px solid var(--surface2); background:var(--bg); font-family:'Golos Text',sans-serif; font-size:13px; color:var(--text); outline:none; transition:border-color var(--ease); }
+.cal-form input:focus, .cal-form select:focus { border-color:var(--accent2); }
+.cal-form-add { width:100%; padding:11px; border-radius:50px; border:none; background:var(--accent); color:#fff; font-family:'Golos Text',sans-serif; font-size:13px; font-weight:600; cursor:pointer; margin-top:2px; box-shadow:0 4px 14px rgba(45,90,61,.25); transition:background var(--ease),transform .15s; }
+.cal-form-add:hover { background:#234830; transform:translateY(-1px); }
+
+.modal-overlay { position:fixed; inset:0; background:rgba(26,26,24,.45); backdrop-filter:blur(4px); z-index:400; display:flex; align-items:center; justify-content:center; padding:24px; opacity:0; pointer-events:none; transition:opacity .3s; }
+.modal-overlay.open { opacity:1; pointer-events:all; }
+.modal { background:var(--surface); border-radius:20px; width:100%; max-width:560px; max-height:88vh; overflow-y:auto; overflow-x:hidden; padding:28px; transform:translateY(16px) scale(.97); transition:transform .35s cubic-bezier(.4,0,.2,1); box-shadow:0 24px 80px rgba(0,0,0,.18); }
+.modal-overlay.open .modal { transform:translateY(0) scale(1); }
+.modal-title { font-family:'Unbounded',sans-serif; font-size:16px; font-weight:600; margin-bottom:20px; }
+.form-section { font-size:10px; font-weight:600; text-transform:uppercase; letter-spacing:.8px; color:var(--accent); margin:18px 0 10px; }
+.form-group { margin-bottom:12px; }
+.form-group label { display:block; font-size:12px; font-weight:500; color:var(--text2); margin-bottom:5px; }
+.form-control { width:100%; padding:11px 13px; border-radius:var(--r-sm); border:2px solid var(--surface2); background:var(--bg); font-family:'Golos Text',sans-serif; font-size:13px; color:var(--text); outline:none; transition:border-color var(--ease); }
+.form-control:focus { border-color:var(--accent2); }
+.form-control::placeholder { color:var(--text3); }
+textarea.form-control { resize:vertical; min-height:75px; }
+.form-row { display:grid; grid-template-columns:1fr 1fr; gap:10px; }
+.modal-footer { display:flex; justify-content:flex-end; gap:10px; margin-top:20px; padding-top:18px; border-top:1px solid var(--surface2); }
+.btn-save { padding:11px 22px; border-radius:50px; border:none; background:var(--accent); color:#fff; font-family:'Golos Text',sans-serif; font-size:13px; font-weight:600; cursor:pointer; box-shadow:0 4px 14px rgba(45,90,61,.25); transition:background var(--ease),transform .15s; }
+.btn-save:hover { background:#234830; transform:translateY(-1px); }
+
+::-webkit-scrollbar { width:5px; }
+::-webkit-scrollbar-track { background:transparent; }
+::-webkit-scrollbar-thumb { background:var(--surface2); border-radius:3px; }
+
+.sidebar-overlay {
+  position:fixed; inset:0;
+  background:rgba(26,26,24,0);
+  z-index:700;
+  pointer-events:none;
+  transition:background .35s;
+}
+.sidebar-overlay.open {
+  background:rgba(26,26,24,.35);
+  pointer-events:all;
+}
+
+.sidebar {
+  position:fixed; top:0; left:0; bottom:0;
+  width:280px;
+  background:var(--surface);
+  display:flex; flex-direction:column;
+  z-index:701;
+  transform:translateX(-100%);
+  transition:transform .4s cubic-bezier(0.4,0,0.2,1);
+  box-shadow:8px 0 40px rgba(0,0,0,0);
+  border-radius:0 20px 20px 0;
+  overflow:hidden;
+}
+.sidebar-overlay.open .sidebar {
+  transform:translateX(0);
+  box-shadow:8px 0 40px rgba(0,0,0,.15);
+}
+
+.sidebar-head {
+  padding:20px 20px 16px;
+  border-bottom:1px solid var(--surface2);
+  display:flex; align-items:center; justify-content:space-between;
+  flex-shrink:0;
+}
+.sidebar-logo { font-family:'Unbounded',sans-serif; font-size:16px; font-weight:600; color:var(--accent); letter-spacing:-.5px; }
+.sidebar-logo span { color:var(--text3); font-weight:300; }
+.sidebar-close {
+  width:30px; height:30px; border-radius:50%;
+  border:none; background:var(--surface2);
+  cursor:pointer; display:flex; align-items:center; justify-content:center;
+  color:var(--text2); transition:background var(--ease), color var(--ease);
+  flex-shrink:0;
+}
+.sidebar-close:hover { background:var(--surface2); color:var(--danger); }
+
+.sidebar-body { flex:1; overflow-y:auto; padding:14px 12px 20px; }
+
+.sb-item {
+  display:flex; align-items:center; gap:12px;
+  padding:11px 12px; border-radius:12px;
+  cursor:pointer; border:none; background:transparent;
+  font-family:'Golos Text',sans-serif; font-size:14px; font-weight:500;
+  color:var(--text2); width:100%; text-align:left;
+  transition:background var(--ease), color var(--ease), transform .15s;
+  position:relative;
+  animation:sbItemIn .3s ease both;
+}
+.sb-item:hover { background:var(--bg); color:var(--text); transform:translateX(3px); }
+.sb-item.active-item { background:rgba(45,90,61,.1); color:var(--accent); }
+.sb-item svg { flex-shrink:0; opacity:.7; transition:opacity var(--ease); }
+.sb-item:hover svg, .sb-item.active-item svg { opacity:1; }
+
+.sb-item:nth-child(1){animation-delay:.05s}
+.sb-item:nth-child(2){animation-delay:.10s}
+.sb-item:nth-child(3){animation-delay:.15s}
+
+.archive-card {
+  background:var(--surface); border-radius:var(--r); padding:20px;
+  cursor:pointer; border:2px solid rgba(192,57,43,.15);
+  box-shadow:var(--shadow); animation:fadeUp .35s ease both;
+  transition:border-color var(--ease), box-shadow var(--ease), transform var(--ease);
+  opacity:.85;
+}
+.archive-card:hover { border-color:rgba(192,57,43,.4); box-shadow:var(--shadow-hover); transform:translateY(-2px); opacity:1; }
+.archive-card .client-avatar { background:linear-gradient(135deg,#c0392b,#8e1c11); }
+
+.sess-tabs {
+  display:flex; gap:6px; flex-wrap:wrap;
+  padding:18px 0 16px;
+  border-bottom:1px solid var(--surface2);
+  margin-bottom:20px;
+}
+.sess-tab {
+  padding:8px 16px; border-radius:50px;
+  border:2px solid var(--surface2);
+  background:var(--surface);
+  font-family:'Golos Text',sans-serif; font-size:13px; font-weight:500; color:var(--text2);
+  cursor:pointer; transition:all var(--ease);
+}
+.sess-tab:hover { border-color:var(--accent2); color:var(--accent); }
+.sess-tab.active { background:var(--accent); border-color:var(--accent); color:#fff; }
+
+.sess-tab-body { animation:fadeUp .3s ease both; }
+.sess-tab-body.hidden { display:none; }
+
+.smr-grid { display:grid; grid-template-columns:1fr 1fr; gap:14px; }
+.smr-card {
+  background:var(--surface); border-radius:var(--r); padding:18px;
+  box-shadow:var(--shadow); border:2px solid transparent;
+  transition:border-color var(--ease);
+}
+.smr-card:focus-within { border-color:var(--accent2); }
+.smr-card-accent { background:linear-gradient(135deg,rgba(45,90,61,.04),var(--surface)); border-color:rgba(45,90,61,.15); }
+.smr-card-red { background:linear-gradient(135deg,rgba(192,57,43,.04),var(--surface)); }
+
+.smr-label {
+  font-family:'Unbounded',sans-serif; font-size:11px; font-weight:600;
+  color:var(--text2); margin-bottom:10px; letter-spacing:.2px;
+}
+.smr-sublabel {
+  font-size:10px; font-weight:600; color:var(--text3);
+  text-transform:uppercase; letter-spacing:.6px;
+  margin:10px 0 6px;
+}
+.smr-input {
+  width:100%; min-height:110px;
+  background:var(--bg); border:none; border-radius:var(--r-sm);
+  padding:10px 12px; resize:vertical;
+  font-family:'Golos Text',sans-serif; font-size:13px; color:var(--text); line-height:1.6;
+  outline:none; transition:box-shadow var(--ease);
+}
+.smr-input:focus { box-shadow:0 0 0 2px var(--accent2); }
+.smr-input::placeholder { color:var(--text3); }
+
+.quick-intro {
+  background:rgba(45,90,61,.08); border-left:3px solid var(--accent);
+  border-radius:0 var(--r-sm) var(--r-sm) 0;
+  padding:12px 16px; margin-bottom:18px;
+  font-size:13px; color:var(--text2); line-height:1.5;
+}
+
+.sess-finish-bar {
+  position:sticky; bottom:0; left:0; right:0;
+  background:var(--bg); border-top:2px solid var(--accent2);
+  padding:14px 0 10px;
+  display:flex; align-items:center; gap:14px;
+  margin-top:24px;
+  z-index:10;
+}
+
+.test-overlay {
+  position:fixed; inset:0; background:rgba(26,26,24,.5); backdrop-filter:blur(6px);
+  z-index:600; display:flex; align-items:center; justify-content:center; padding:24px;
+  opacity:0; pointer-events:none; transition:opacity .3s;
+}
+.test-overlay.open { opacity:1; pointer-events:all; }
+.test-modal {
+  background:var(--surface); border-radius:22px;
+  width:100%; max-width:620px; max-height:88vh; overflow-y:auto; overflow-x:hidden;
+  box-shadow:0 32px 96px rgba(0,0,0,.22);
+  transform:scale(.93) translateY(20px); opacity:0;
+  transition:transform .4s cubic-bezier(.34,1.2,.64,1), opacity .3s;
+}
+.test-overlay.open .test-modal { transform:scale(1) translateY(0); opacity:1; }
+.test-header {
+  background:linear-gradient(135deg,#2d5a3d,#1a3d28);
+  border-radius:22px 22px 0 0; padding:24px 28px 20px;
+  position:relative;
+}
+.test-header-title { font-family:'Unbounded',sans-serif; font-size:18px; font-weight:600; color:#fff; margin-bottom:4px; }
+.test-header-sub { font-size:13px; color:rgba(255,255,255,.7); }
+.test-close {
+  position:absolute; top:18px; right:18px;
+  width:30px; height:30px; border-radius:50%; border:none;
+  background:rgba(255,255,255,.15); cursor:pointer;
+  display:flex; align-items:center; justify-content:center; color:#fff;
+  transition:background .2s;
+}
+.test-close:hover { background:rgba(255,255,255,.3); }
+.test-body { padding:24px 28px 28px; }
+.test-q { margin-bottom:16px; }
+.test-q-text { font-size:14px; color:var(--text); margin-bottom:8px; line-height:1.5; }
+.test-options { display:flex; flex-direction:column; gap:6px; }
+.test-opt {
+  display:flex; align-items:center; gap:10px;
+  padding:10px 14px; border-radius:var(--r-sm);
+  background:var(--bg); border:2px solid transparent;
+  cursor:pointer; transition:all var(--ease);
+  font-size:13px; color:var(--text2);
+}
+.test-opt:hover { border-color:var(--accent2); color:var(--text); }
+.test-opt.selected { border-color:var(--accent); background:rgba(45,90,61,.08); color:var(--accent); font-weight:600; }
+.test-opt-score { font-family:'Unbounded',sans-serif; font-size:10px; color:var(--text3); margin-left:auto; }
+.test-result {
+  background:linear-gradient(135deg,rgba(45,90,61,.08),rgba(45,90,61,.02));
+  border:2px solid rgba(45,90,61,.2); border-radius:var(--r);
+  padding:20px; text-align:center; margin-top:20px;
+}
+.test-result-score { font-family:'Unbounded',sans-serif; font-size:36px; font-weight:600; color:var(--accent); }
+.test-result-label { font-size:15px; font-weight:600; color:var(--text); margin:6px 0 4px; }
+.test-result-range { font-size:12px; color:var(--text3); }
+.test-progress { display:flex; gap:4px; margin-top:16px; }
+.test-progress-bar { flex:1; height:4px; border-radius:2px; background:var(--surface2); transition:background .3s; }
+.test-progress-bar.done { background:var(--accent2); }
+.test-progress-bar.active { background:var(--accent); }
+
+@keyframes sbItemIn {
+  from { opacity:0; transform:translateX(-12px); }
+  to   { opacity:1; transform:translateX(0); }
+}
+
+.sb-divider {
+  height:1px; background:var(--surface2);
+  margin:10px 4px; animation:sbItemIn .3s ease both;
+}
+
+.sb-section-label {
+  font-family:'Unbounded',sans-serif; font-size:9px; font-weight:600;
+  text-transform:uppercase; letter-spacing:.8px; color:var(--text3);
+  padding:8px 12px 4px;
+  animation:sbItemIn .3s ease both;
+}
+
+.menu-btn {
+  width:34px; height:34px; border-radius:50%;
+  background:transparent; border:none;
+  cursor:pointer; display:flex; align-items:center; justify-content:center;
+  color:var(--accent); flex-shrink:0;
+  transition:background var(--ease), transform .2s;
+}
+.menu-btn:hover { background:var(--surface2); transform:scale(1.1); }
+
+@media(max-width:860px){ .technique-grid{grid-template-columns:repeat(2,1fr);} }
+@media(max-width:600px){ .screen-body{padding:0 16px 60px;} .topbar{padding:14px 16px;} .client-grid{grid-template-columns:1fr;} .form-row{grid-template-columns:1fr;} .cal-side{width:100%;} .sidebar{width:260px;} .smr-grid{grid-template-columns:1fr;} }
+</style>
+</head>
+<body>
+
+<!-- SCREEN 1: CLIENTS -->
+<div class="screen active" id="s-clients">
+  <div class="topbar">
+    <button class="menu-btn" onclick="UIController.openSidebar()">
+      <svg width="19" height="19" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+    </button>
+    <div class="logo">КПТ<span>шка</span></div>
+    <div class="spacer"></div>
+    <button class="btn-primary" onclick="UIController.openClientModal()">
+      <svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg>
+      Новый клиент
+    </button>
+  </div>
+  <div class="screen-body">
+    <div class="page-header">
+      <div>
+        <div class="page-title">Картотека клиентов</div>
+        <div class="page-subtitle" id="client-count-label">0 клиентов</div>
+      </div>
+    </div>
+    <div class="search-wrap">
+      <svg width="17" height="17" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+      <input class="search-input" placeholder="Поиск…" oninput="ClientController.filterClients(this.value)">
+    </div>
+    <div class="client-grid" id="client-grid"></div>
+  </div>
+</div>
+
+<!-- SCREEN 2: PROFILE -->
+<div class="screen" id="s-profile">
+  <div class="topbar">
+    <button class="back-btn" onclick="NavController.navBack('s-clients')">
+      <svg width="17" height="17" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path d="m15 18-6-6 6-6"/></svg>
+    </button>
+    <div class="topbar-title">Профиль</div>
+    <div class="spacer"></div>
+  </div>
+  <div class="screen-body" id="profile-content"></div>
+</div>
+
+<!-- SCREEN 3: SESSION -->
+<div class="screen" id="s-session">
+  <div class="topbar">
+    <button class="back-btn" onclick="NavController.navBack('s-profile')">
+      <svg width="17" height="17" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path d="m15 18-6-6 6-6"/></svg>
+    </button>
+    <div class="topbar-title" id="session-title">Сессия</div>
+    <div class="spacer"></div>
+    <div style="font-family:'Unbounded',sans-serif;font-size:11px;color:var(--accent);background:rgba(45,90,61,.1);padding:5px 12px;border-radius:50px;" id="session-num-badge"></div>
+  </div>
+  <div class="screen-body" style="padding-bottom:80px">
+
+    <div class="sess-tabs">
+      <button class="sess-tab active" onclick="SessionUI.switchSessTab(this,'tab-smr')">📝 СМЭР</button>
+      <button class="sess-tab" onclick="SessionUI.switchSessTab(this,'tab-quick')">⚡ Быстрая помощь</button>
+      <button class="sess-tab" onclick="SessionUI.switchSessTab(this,'tab-notes')">💬 Заметки</button>
+      <button class="sess-tab" onclick="SessionUI.switchSessTab(this,'tab-plan')">🎯 ДЗ и план</button>
+    </div>
+
+    <!-- TAB 1: СМЭР -->
+    <div class="sess-tab-body" id="tab-smr">
+      <div class="smr-grid">
+        <div class="smr-card">
+          <div class="smr-label">🔴 Ситуация / Триггер</div>
+          <textarea class="smr-input" id="smr-situation" placeholder="Где, когда, с кем? Что произошло?"></textarea>
+        </div>
+        <div class="smr-card">
+          <div class="smr-label">💭 Автоматические мысли</div>
+          <textarea class="smr-input" id="smr-thoughts" placeholder="Что пронеслось в голове?"></textarea>
+        </div>
+        <div class="smr-card">
+          <div class="smr-label">😟 Эмоции (0–10)</div>
+          <textarea class="smr-input" id="smr-emotions" placeholder="Какие эмоции? Оцените интенсивность"></textarea>
+          <div class="smr-sublabel">Физ. ощущения</div>
+          <textarea class="smr-input" id="smr-body" placeholder="Напряжение, дрожь, сердцебиение…" style="min-height:70px"></textarea>
+        </div>
+        <div class="smr-card">
+          <div class="smr-label">🏃 Реакция / Поведение</div>
+          <textarea class="smr-input" id="smr-behavior" placeholder="Что сделали? Как повели(ась)?"></textarea>
+        </div>
+        <div class="smr-card">
+          <div class="smr-label">🔗 Промежуточное убеждение (ПУ)</div>
+          <textarea class="smr-input" id="smr-pu" placeholder="Правило: «Я должна…», Предположение: «Если…, то…»"></textarea>
+        </div>
+        <div class="smr-card smr-card-accent">
+          <div class="smr-label">⚡ Глубинное убеждение (ГУ)</div>
+          <textarea class="smr-input" id="smr-gu" placeholder="«Я плохая», «Я ненужная», «Я недостаточно хорошая»"></textarea>
+        </div>
+      </div>
+      <div style="margin-top:16px;display:flex;gap:10px;justify-content:flex-end">
+        <button class="btn-ghost" onclick="SessionUI.clearSMR()" style="font-size:12px;padding:8px 16px">Очистить</button>
+        <button class="btn-primary" onclick="SessionUI.saveSMRToSession()" style="font-size:13px;padding:9px 18px">
+          <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>
+          Сохранить в сессию
+        </button>
+      </div>
+    </div>
+
+    <!-- TAB 2: Быстрая помощь -->
+    <div class="sess-tab-body hidden" id="tab-quick">
+      <div class="quick-intro">
+        <b>Протокол «Быстрая помощь»</b> — работа с глубинным убеждением прямо на сессии
+      </div>
+      <div class="smr-grid">
+        <div class="smr-card">
+          <div class="smr-label">📌 Ситуация</div>
+          <textarea class="smr-input" id="q-situation" placeholder="Конкретная ситуация…"></textarea>
+        </div>
+        <div class="smr-card">
+          <div class="smr-label">💭 Мысли → Эмоции → Реакции</div>
+          <textarea class="smr-input" id="q-thoughts" placeholder="Мысли и их интенсивность…"></textarea>
+        </div>
+        <div class="smr-card smr-card-red">
+          <div class="smr-label">❌ ГУ минус (негативное убеждение)</div>
+          <textarea class="smr-input" id="q-gu-minus" placeholder="«Я плохая/ой» — на сколько баллов?"></textarea>
+          <div style="margin-top:8px">
+            <div class="smr-sublabel">По какой ДРУГОЙ причине, кроме как я плохой?</div>
+            <textarea class="smr-input" id="q-other-reasons" placeholder="Другие объяснения ситуации…" style="min-height:70px"></textarea>
+          </div>
+        </div>
+        <div class="smr-card smr-card-accent">
+          <div class="smr-label">✅ ГУ плюс (новое убеждение)</div>
+          <textarea class="smr-input" id="q-gu-plus" placeholder="«Я достаточно хорошая — на 8/10»…" style="min-height:80px"></textarea>
+        </div>
+      </div>
+      <div style="margin-top:16px;display:flex;gap:10px;justify-content:flex-end">
+        <button class="btn-ghost" onclick="SessionUI.clearQuick()" style="font-size:12px;padding:8px 16px">Очистить</button>
+        <button class="btn-primary" onclick="SessionUI.saveQuickToSession()" style="font-size:13px;padding:9px 18px">
+          <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>
+          Сохранить в сессию
+        </button>
+      </div>
+    </div>
+
+    <!-- TAB 3: Заметки -->
+    <div class="sess-tab-body hidden" id="tab-notes">
+      <div class="smr-card" style="margin-bottom:16px">
+        <div class="smr-label">📋 Заметки психолога</div>
+        <textarea class="smr-input" id="sess-notes-text" placeholder="Свободные заметки по ходу сессии…" style="min-height:200px"></textarea>
+      </div>
+      <div class="smr-card">
+        <div class="smr-label">🔑 Ключевые темы и паттерны</div>
+        <textarea class="smr-input" id="sess-patterns" placeholder="Повторяющиеся паттерны, связи с ГУ…" style="min-height:120px"></textarea>
+      </div>
+      <div style="margin-top:16px;display:flex;justify-content:flex-end">
+        <button class="btn-primary" onclick="SessionUI.saveNotesToSession()" style="font-size:13px;padding:9px 18px">
+          <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>
+          Сохранить в сессию
+        </button>
+      </div>
+    </div>
+
+    <!-- TAB 4: ДЗ и план -->
+    <div class="sess-tab-body hidden" id="tab-plan">
+      <div class="smr-card" style="margin-bottom:16px">
+        <div class="smr-label">📚 Домашнее задание</div>
+        <textarea class="smr-input" id="sess-homework" placeholder="1. Вести СМЭР…" style="min-height:140px"></textarea>
+      </div>
+      <div class="smr-card" style="margin-bottom:16px">
+        <div class="smr-label">🎯 Тема следующей сессии</div>
+        <textarea class="smr-input" id="sess-next" placeholder="Что планируем проработать…" style="min-height:100px"></textarea>
+      </div>
+      <div class="smr-card">
+        <div class="smr-label">📊 Обратная связь от клиента</div>
+        <textarea class="smr-input" id="sess-feedback" placeholder="«Что ценного было для вас?»…" style="min-height:100px"></textarea>
+      </div>
+      <div style="margin-top:16px;display:flex;justify-content:flex-end">
+        <button class="btn-primary" onclick="SessionUI.finishFullSession()" style="font-size:13px;padding:9px 18px">
+          <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>
+          Завершить сессию
+        </button>
+      </div>
+    </div>
+
+    <div class="sess-finish-bar">
+      <div style="font-size:12px;color:var(--text3);flex:1">
+        Заполните нужные разделы и завершите сессию
+      </div>
+      <button class="btn-primary" onclick="SessionUI.finishFullSession()" style="font-size:13px;padding:10px 22px;flex-shrink:0">
+        <svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>
+        Завершить сессию
+      </button>
+    </div>
+
+  </div>
+</div>
+
+<!-- SCREEN 5: ТЕХНИКИ КПТ -->
+<div class="screen" id="s-techniques">
+  <div class="topbar">
+    <button class="back-btn" onclick="NavController.navBack('s-clients')">
+      <svg width="17" height="17" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path d="m15 18-6-6 6-6"/></svg>
+    </button>
+    <div class="topbar-title">Техники КПТ</div>
+    <div class="spacer"></div>
+  </div>
+  <div class="screen-body">
+    <div class="page-header" style="border-bottom:1px solid var(--surface2);margin-bottom:18px;padding-bottom:16px">
+      <div>
+        <div class="page-title">Техники КПТ</div>
+        <div class="page-subtitle">18 основных техник когнитивно-поведенческой терапии</div>
+      </div>
+    </div>
+    <div class="technique-grid" id="technique-grid-ref"></div>
+  </div>
+</div>
+
+<!-- SCREEN 4: CALENDAR -->
+<div class="screen" id="s-calendar">
+  <div class="topbar">
+    <button class="back-btn" onclick="NavController.navBack('s-clients')">
+      <svg width="17" height="17" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path d="m15 18-6-6 6-6"/></svg>
+    </button>
+    <div class="topbar-title">Календарь сессий</div>
+    <div class="spacer"></div>
+  </div>
+  <div class="screen-body">
+    <div class="cal-top">
+      <button class="cal-nav-btn" onclick="CalendarController.calMove(-1)">
+        <svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path d="m15 18-6-6 6-6"/></svg>
+      </button>
+      <div class="cal-month" id="cal-month"></div>
+      <button class="cal-today" onclick="CalendarController.calToday()">Сегодня</button>
+      <button class="cal-nav-btn" onclick="CalendarController.calMove(1)">
+        <svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path d="m9 18 6-6-6-6"/></svg>
+      </button>
+    </div>
+    <div class="cal-grid" id="cal-grid"></div>
+  </div>
+</div>
+
+<!-- SCREEN 6: АРХИВ -->
+<div class="screen" id="s-archive">
+  <div class="topbar">
+    <button class="back-btn" onclick="NavController.navBack('s-clients')">
+      <svg width="17" height="17" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path d="m15 18-6-6 6-6"/></svg>
+    </button>
+    <div class="topbar-title">Архив клиентов</div>
+    <div class="spacer"></div>
+  </div>
+  <div class="screen-body">
+    <div class="page-header">
+      <div>
+        <div class="page-title">Архив</div>
+        <div class="page-subtitle" id="archive-count-label">0 клиентов</div>
+      </div>
+    </div>
+    <div class="client-grid" id="archive-grid"></div>
+  </div>
+</div>
+
+<!-- CONFIRM MODAL -->
+<div class="modal-overlay" id="confirm-overlay" onclick="UIController.closeConfirmIfBg(event)">
+  <div class="modal" style="max-width:420px;text-align:center;padding:36px 32px">
+    <div id="confirm-icon" style="font-size:48px;margin-bottom:16px"></div>
+    <div id="confirm-title" style="font-family:Unbounded,sans-serif;font-size:17px;font-weight:600;margin-bottom:10px"></div>
+    <div id="confirm-text" style="font-size:14px;color:var(--text2);line-height:1.6;margin-bottom:28px"></div>
+    <div style="display:flex;gap:10px;justify-content:center">
+      <button class="btn-ghost" onclick="UIController.closeConfirm()">Отмена</button>
+      <button id="confirm-ok-btn" style="padding:11px 24px;border-radius:50px;border:none;font-family:Golos Text,sans-serif;font-size:14px;font-weight:600;cursor:pointer;transition:all .2s"></button>
+    </div>
+  </div>
+</div>
+
+<!-- TECHNIQUE DETAIL MODAL -->
+<div class="tmodal-overlay" id="tmodal-overlay" onclick="UIController.closeTModalIfBg(event)">
+  <div class="tmodal" id="tmodal-content"></div>
+</div>
+
+<!-- TESTS MODAL -->
+<div class="test-overlay" id="test-overlay" onclick="UIController.closeTestIfBg(event)">
+  <div class="test-modal">
+    <div class="test-header">
+      <button class="test-close" onclick="TestController.closeTest()">
+        <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path d="M18 6 6 18M6 6l12 12"/></svg>
+      </button>
+      <div class="test-header-title" id="test-title"></div>
+      <div class="test-header-sub" id="test-sub"></div>
+    </div>
+    <div class="test-body" id="test-body"></div>
+  </div>
+</div>
+
+<!-- SIDEBAR -->
+<div class="sidebar-overlay" id="sidebar-overlay" onclick="UIController.closeSidebar()">
+  <div class="sidebar" onclick="event.stopPropagation()">
+    <div class="sidebar-head">
+      <div class="sidebar-logo">КПТ<span>шка</span></div>
+      <button class="sidebar-close" onclick="UIController.closeSidebar()">
+        <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path d="M18 6 6 18M6 6l12 12"/></svg>
+      </button>
+    </div>
+    <div class="sidebar-body" id="sidebar-body"></div>
+  </div>
+</div>
+
+<!-- CALENDAR SIDEBAR -->
+<div class="cal-overlay" id="cal-overlay" onclick="CalendarController.closeSideIfBg(event)">
+  <div class="cal-side">
+    <button class="cal-close" onclick="CalendarController.closeCalSide()">
+      <svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path d="M18 6 6 18M6 6l12 12"/></svg>
+    </button>
+    <div class="cal-side-hd" id="cal-side-hd"></div>
+    <div class="cal-side-sub">Записи на этот день</div>
+    <div id="cal-appt-list"></div>
+    <div class="cal-side-sub">Добавить запись</div>
+    <div class="cal-form">
+      <div class="cal-form-row">
+        <div><label>Время</label><input type="time" id="cal-time" value="10:00"></div>
+        <div><label>Клиент</label><select id="cal-client"></select></div>
+      </div>
+      <button class="cal-form-add" onclick="CalendarController.addAppt()">Записать</button>
+    </div>
+  </div>
+</div>
+
+<!-- ADD CLIENT MODAL -->
+<div class="modal-overlay" id="client-modal" onclick="UIController.closeModalIfBg(event)">
+  <div class="modal">
+    <div class="modal-title">Новый клиент</div>
+    <div class="form-section">Личные данные</div>
+    <div class="form-row">
+      <div class="form-group"><label>Имя *</label><input class="form-control" id="f-name" placeholder="Имя"></div>
+      <div class="form-group"><label>Фамилия</label><input class="form-control" id="f-surname" placeholder="Фамилия"></div>
+    </div>
+    <div class="form-row">
+      <div class="form-group"><label>Дата рождения</label><input class="form-control" id="f-dob" type="date"></div>
+      <div class="form-group"><label>Пол</label>
+        <select class="form-control" id="f-gender">
+          <option value="">Не указан</option><option>Мужской</option><option>Женский</option><option>Другой</option>
+        </select>
+      </div>
+    </div>
+    <div class="form-row">
+      <div class="form-group"><label>Телефон</label><input class="form-control" id="f-phone" placeholder="+7 (999) 000-00-00"></div>
+      <div class="form-group"><label>Email</label><input class="form-control" id="f-email" type="email" placeholder="email@example.com"></div>
+    </div>
+    <div class="form-section">Запрос и анамнез</div>
+    <div class="form-group"><label>Жалобы и основной запрос *</label><textarea class="form-control" id="f-complaint" placeholder="Основные жалобы и запрос…"></textarea></div>
+    <div class="form-group"><label>История проблемы</label><textarea class="form-control" id="f-history" placeholder="Когда началось, динамика…"></textarea></div>
+    <div class="form-group"><label>Диагноз / предположения</label><input class="form-control" id="f-diagnosis" placeholder="Например: ГТР, депрессивный эпизод…"></div>
+    <div class="form-section">Цели терапии</div>
+    <div class="form-group"><label>Цели клиента</label><textarea class="form-control" id="f-goals" placeholder="Что хочет изменить…"></textarea></div>
+    <div class="form-group"><label>Предыдущий опыт терапии</label><input class="form-control" id="f-prev" placeholder="Был ли опыт…"></div>
+    <div class="form-section">Дополнительно</div>
+    <div class="form-group"><label>Принимаемые препараты</label><input class="form-control" id="f-meds" placeholder="Название, дозировка…"></div>
+    <div class="form-group"><label>Заметки</label><textarea class="form-control" id="f-notes" placeholder="Дополнительные наблюдения…"></textarea></div>
+    <div class="modal-footer">
+      <button class="btn-ghost" onclick="UIController.closeClientModal()">Отмена</button>
+      <button class="btn-save" onclick="ClientController.saveClient()">Сохранить</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ═════════════════════════════════════════════════════════════════════════════════════
+// STORAGE — ИСПРАВКА #1 — Безопасный парсинг localStorage
+// ═════════════════════════════════════════════════════════════════════════════════════
+
+const Storage = {
+  get(key, defaultValue = []) {
+    try {
+      const data = localStorage.getItem(key);
+      if (!data) return defaultValue;
+      const parsed = JSON.parse(data);
+      if (!Array.isArray(parsed) && Array.isArray(defaultValue)) {
+        console.warn(`Storage: ${key} corrupted, using default`);
+        return defaultValue;
+      }
+      return parsed;
+    } catch (error) {
+      console.error(`Storage parse error for ${key}:`, error);
+      return defaultValue;
+    }
+  },
+
+  set(key, value) {
+    try {
+      localStorage.setItem(key, JSON.stringify(value));
+      return true;
+    } catch (error) {
+      console.error(`Storage save error for ${key}:`, error);
+      return false;
+    }
+  },
+
+  getClients() { return this.get('kpt_clients', []); },
+  setClients(v) { return this.set('kpt_clients', v); },
+  getSessions() { return this.get('kpt_sessions', []); },
+  setSessions(v) { return this.set('kpt_sessions', v); },
+  getAppointments() { return this.get('kpt_appointments', []); },
+  setAppointments(v) { return this.set('kpt_appointments', v); },
+};
+
+// ═════════════════════════════════════════════════════════════════════════════════════
+// VALIDATORS — Валидация данных
+// ═════════════════════════════════════════════════════════════════════════════════════
+
+const Validators = {
+  // ИСПРАВКА #2: Безопасный расчет возраста
+  calculateAge(dob) {
+    if (!dob || typeof dob !== 'string') return null;
+    try {
+      const birthDate = new Date(dob);
+      if (isNaN(birthDate.getTime())) return null;
+      const age = Math.floor((Date.now() - birthDate) / (365.25 * 24 * 60 * 60 * 1000));
+      if (age < 0 || age > 150) return null;
+      return age;
+    } catch (e) {
+      return null;
+    }
+  },
+
+  // ИСПРАВКА #3: Защита доступа к массиву
+  isValidClientIndex(idx, clients) {
+    return typeof idx === 'number' && idx >= 0 && idx < clients.length && clients[idx] !== null;
+  },
+
+  // ИСПРАВКА #4: Валидация формы
+  validateClientForm() {
+    const name = document.getElementById('f-name').value.trim();
+    if (!name) {
+      UIController.showToast('❌ Введите имя клиента');
+      document.getElementById('f-name').focus();
+      return false;
+    }
+    return true;
+  },
+};
+
+// ═════════════════════════════════════════════════════════════════════════════════════
+// HELPERS — Утилиты
+// ═════════════════════════════════════════════════════════════════════════════════════
+
+const Helpers = {
+  ini(c) { return ((c.name[0]||'')+(c.surname?.[0]||'')).toUpperCase()||'?'; },
+  declination(n,a,b,c) { if(n%10===1&&n%100!==11)return a; if([2,3,4].includes(n%10)&&![12,13,14].includes(n%100))return b; return c; },
+  fmtDate(iso) {
+    if (!iso) return '';
+    try {
+      const d = new Date(iso);
+      if (isNaN(d.getTime())) return '';
+      return d.toLocaleDateString('ru-RU', {day:'numeric',month:'long',year:'numeric',hour:'2-digit',minute:'2-digit'});
+    } catch (e) {
+      return '';
+    }
+  },
+  truncate(t,n) { return !t||t.length<=n?t:t.slice(0,n)+'…'; },
+};
+
+// ═════════════════════════════════════════════════════════════════════════════════════
+// NAV CONTROLLER — Навигация
+// ═════════════════════════════════════════════════════════════════════════════════════
+
+const NavController = {
+  stack: ['s-clients'],
+
+  navTo(id) {
+    const cur = this.stack[this.stack.length - 1];
+    if (cur === id) return;
+    document.getElementById(cur).classList.add('behind');
+    document.getElementById(id).classList.remove('behind');
+    document.getElementById(id).classList.add('active');
+    this.stack.push(id);
+    const body = document.getElementById(id).querySelector('.screen-body');
+    if (body) body.scrollTo(0, 0);
+  },
+
+  navBack(to) {
+    const cur = this.stack[this.stack.length - 1];
+    document.getElementById(cur).classList.remove('active');
+    document.getElementById(to).classList.remove('behind');
+    const idx = this.stack.lastIndexOf(to);
+    this.stack.splice(idx + 1);
+  },
+};
+
+// ═════════════════════════════════════════════════════════════════════════════════════
+// CLIENT CONTROLLER — Управление клиентами
+// ═════════════════════════════════════════════════════════════════════════════════════
+
+const ClientController = {
+  clients: [],
+
+  init() {
+    this.clients = Storage.getClients();
+    if (this.clients.length === 0) {
+      this.loadDemoData();
+    }
+    this.render();
+  },
+
+  // ИСПРАВКА #3: Защита openClient
+  openClient(idx) {
+    if (!Validators.isValidClientIndex(idx, this.clients)) {
+      UIController.showToast('❌ Клиент не найден');
+      this.render();
+      return;
+    }
+
+    const c = this.clients[idx];
+    const age = Validators.calculateAge(c.dob);
+    const sc = Storage.getSessions().filter(s => s.clientIdx === idx).length;
+    const ageText = age ? `${age} ${Helpers.declination(age,'год','года','лет')}` : '';
+    
+    document.getElementById('profile-content').innerHTML = `
+      <div class="profile-hero">
+        <div class="profile-avatar">${Helpers.ini(c)}</div>
+        <div class="profile-hero-info">
+          <div class="profile-name">${c.name}${c.surname?' '+c.surname:''}</div>
+          <div class="profile-sub">${ageText}${c.gender?' · '+c.gender:''}${sc?' · '+sc+' сессий':''}</div>
+        </div>
+        ${c.archived
+          ? `<button onclick="UIController.confirmRestore(${idx})" class="btn-session">Вернуть</button>`
+          : `<button class="btn-session" onclick="SessionUI.startSession(${idx})">Начать сессию</button>
+             <button onclick="UIController.confirmArchive(${idx})" style="background:transparent;color:var(--danger);border:2px solid rgba(192,57,43,.3);margin-left:10px">Архив</button>`
+        }
+      </div>
+      <div class="section-title">Контакты</div>
+      <div class="fields-grid">${this.field('Телефон',c.phone)}${this.field('Email',c.email)}</div>
+      <div class="section-title">Запрос и анамнез</div>
+      <div class="fields-grid">${this.field('Жалобы',c.complaint,true)}${this.field('История',c.history,true)}${this.field('Диагноз',c.diagnosis)}</div>
+      <div class="section-title">Цели терапии</div>
+      <div class="fields-grid">${this.field('Цели',c.goals,true)}${this.field('Опыт',c.prev)}</div>
+      <div class="section-title">Дополнительно</div>
+      <div class="fields-grid">${this.field('Препараты',c.meds)}${this.field('Заметки',c.notes,true)}</div>
+      <div class="section-title">История сессий</div>
+      ${Storage.getSessions().filter(s=>s.clientIdx===idx).length
+        ? Storage.getSessions().filter(s=>s.clientIdx===idx).sort((a,b)=>new Date(b.date)-new Date(a.date)).map((s,i)=>`
+          <div class="session-item">
+            <div class="session-item-head">
+              <div class="session-item-date">${Helpers.fmtDate(s.date)}</div>
+            </div>
+            <div class="session-item-techs">${(s.techniques||[]).map(t=>`<span class="tag green">${t}</span>`).join('')}</div>
+            ${s.note?`<div class="session-item-note">${s.note}</div>`:''}
+          </div>`).join('')
+        : '<div class="no-sessions">Сессий пока не было</div>'
+      }
+    `;
+    NavController.navTo('s-profile');
+  },
+
+  field(label, val, wide=false) {
+    return `<div class="field-card${wide?' wide':''}"><div class="field-label">${label}</div><div class="field-value${val?'':' empty'}">${val||'Не заполнено'}</div></div>`;
+  },
+
+  saveClient() {
+    if (!Validators.validateClientForm()) return;
+
+    const client = {
+      name: document.getElementById('f-name').value.trim(),
+      surname: document.getElementById('f-surname').value.trim(),
+      dob: document.getElementById('f-dob').value,
+      gender: document.getElementById('f-gender').value,
+      phone: document.getElementById('f-phone').value.trim(),
+      email: document.getElementById('f-email').value.trim(),
+      complaint: document.getElementById('f-complaint').value.trim(),
+      history: document.getElementById('f-history').value.trim(),
+      diagnosis: document.getElementById('f-diagnosis').value.trim(),
+      goals: document.getElementById('f-goals').value.trim(),
+      prev: document.getElementById('f-prev').value.trim(),
+      meds: document.getElementById('f-meds').value.trim(),
+      notes: document.getElementById('f-notes').value.trim(),
+      created: new Date().toISOString(),
+      archived: false,
+    };
+
+    this.clients.push(client);
+    Storage.setClients(this.clients);
+    UIController.closeClientModal();
+    this.clearForm();
+    this.render();
+    UIController.showToast(`✓ ${client.name} добавлен(а)`);
+  },
+
+  filterClients(q) {
+    q = q.toLowerCase();
+    const active = this.clients.filter(c => !c.archived);
+    const filtered = active.filter(c =>
+      (c.name + ' ' + (c.surname || '')).toLowerCase().includes(q) ||
+      (c.complaint || '').toLowerCase().includes(q) ||
+      (c.diagnosis || '').toLowerCase().includes(q)
+    );
+    this.render(filtered);
+  },
+
+  render(list) {
+    const active = this.clients.filter(c => !c.archived);
+    const displayList = (list || active).filter(c => !c.archived);
+
+    document.getElementById('client-count-label').textContent =
+      `${active.length} ${Helpers.declination(active.length, 'клиент', 'клиента', 'клиентов')}`;
+
+    const grid = document.getElementById('client-grid');
+    if (!displayList.length) {
+      grid.innerHTML = `<div class="empty-state">
+        <svg width="52" height="52" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/></svg>
+        <p>${active.length ? 'Ничего не найдено' : 'Добавьте первого клиента'}</p>
+      </div>`;
+      return;
+    }
+
+    grid.innerHTML = displayList.map((c, i) => {
+      const idx = this.clients.indexOf(c);
+      const age = Validators.calculateAge(c.dob);
+      const sc = Storage.getSessions().filter(s => s.clientIdx === idx).length;
+      const tags = [c.diagnosis&&{t:c.diagnosis,g:true}, c.gender&&{t:c.gender,g:false}].filter(Boolean);
+      return `<div class="client-card" onclick="ClientController.openClient(${idx})">
+        <div class="client-avatar">${Helpers.ini(c)}</div>
+        <div class="client-name">${c.name}${c.surname?' '+c.surname:''}</div>
+        <div class="client-meta">${age?age+' лет · ':''}${Helpers.truncate(c.complaint||'Нет запроса',55)}</div>
+        <div class="tags">${tags.map(t=>`<span class="tag${t.g?' green':''}">${t.t}</span>`).join('')}</div>
+        <div class="client-footer"><span>Сессий: <strong>${sc}</strong></span>
+          <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="m9 18 6-6-6-6"/></svg>
+        </div>
+      </div>`;
+    }).join('');
+  },
+
+  clearForm() {
+    ['f-name','f-surname','f-dob','f-gender','f-phone','f-email','f-complaint','f-history','f-diagnosis','f-goals','f-prev','f-meds','f-notes'].forEach(id=>{
+      const el=document.getElementById(id);
+      el.tagName==='SELECT'?el.selectedIndex=0:(el.value='');
+    });
+  },
+
+  loadDemoData() {
+    this.clients = [
+      {
+        name: 'Наташа', surname: '',
+        dob: '', gender: 'Женский',
+        phone: '', email: '',
+        complaint: 'Конфликты с мужем — обвинения, уход из комнаты. Постоянная смена мест работы каждые 1–2 года.',
+        history: 'Детская травма брошенности (бабушка не забрала из садика). Мать использовала схему «будешь хорошей — куплю».',
+        diagnosis: 'Глубинные убеждения',
+        goals: 'Выдерживать конфликты без избегания.',
+        prev: '',
+        meds: '', notes: '',
+        created: new Date().toISOString(),
+        archived: false,
+      },
+      {
+        name: 'Женя', surname: '',
+        dob: '1996-01-01', gender: 'Женский',
+        phone: '', email: '',
+        complaint: 'Трудности в отношениях с родным отцом (чувствует себя ненужной). Гиперконтроль.',
+        history: 'Родители развелись в 1 год. Воспитание отчимом. Неудачный брак в 20 лет.',
+        diagnosis: 'ГУ',
+        goals: 'Уменьшить контроль. Научиться просить о помощи.',
+        prev: '1 час в неделю',
+        meds: 'Витамины', notes: '',
+        created: new Date().toISOString(),
+        archived: false,
+      },
+    ];
+    Storage.setClients(this.clients);
+  },
+};
+
+// ═════════════════════════════════════════════════════════════════════════════════════
+// SESSION UI — Работа с сессиями
+// ═════════════════════════════════════════════════════════════════════════════════════
+
+const SessionUI = {
+  currentClient: null,
+  currentData: {},
+
+  startSession(idx) {
+    this.currentClient = idx;
+    this.currentData = {};
+    const c = ClientController.clients[idx];
+    const sessCount = Storage.getSessions().filter(s => s.clientIdx === idx).length + 1;
+    document.getElementById('session-title').textContent = `Сессия · ${c.name}`;
+    document.getElementById('session-num-badge').textContent = `Сессия №${sessCount}`;
+
+    document.querySelectorAll('.sess-tab').forEach((t,i)=>t.classList.toggle('active',i===0));
+    document.querySelectorAll('.sess-tab-body').forEach((t,i)=>t.classList.toggle('hidden',i!==0));
+
+    NavController.navTo('s-session');
+  },
+
+  switchSessTab(btn,tabId) {
+    document.querySelectorAll('.sess-tab').forEach(t=>t.classList.remove('active'));
+    document.querySelectorAll('.sess-tab-body').forEach(t=>t.classList.add('hidden'));
+    btn.classList.add('active');
+    document.getElementById(tabId).classList.remove('hidden');
+  },
+
+  saveSMRToSession() {
+    this.currentData.smr = {
+      situation: document.getElementById('smr-situation').value,
+      thoughts: document.getElementById('smr-thoughts').value,
+      emotions: document.getElementById('smr-emotions').value,
+      body: document.getElementById('smr-body').value,
+      behavior: document.getElementById('smr-behavior').value,
+      pu: document.getElementById('smr-pu').value,
+      gu: document.getElementById('smr-gu').value,
+    };
+    UIController.showToast('✓ СМЭР сохранён');
+  },
+
+  clearSMR() {
+    ['smr-situation','smr-thoughts','smr-emotions','smr-body','smr-behavior','smr-pu','smr-gu'].forEach(id=>document.getElementById(id).value='');
+  },
+
+  saveQuickToSession() {
+    this.currentData.quick = {
+      situation: document.getElementById('q-situation').value,
+      thoughts: document.getElementById('q-thoughts').value,
+      guMinus: document.getElementById('q-gu-minus').value,
+      otherReasons: document.getElementById('q-other-reasons').value,
+      guPlus: document.getElementById('q-gu-plus').value,
+    };
+    UIController.showToast('✓ Быстрая помощь сохранена');
+  },
+
+  clearQuick() {
+    ['q-situation','q-thoughts','q-gu-minus','q-other-reasons','q-gu-plus'].forEach(id=>document.getElementById(id).value='');
+  },
+
+  saveNotesToSession() {
+    this.currentData.notes = document.getElementById('sess-notes-text').value;
+    this.currentData.patterns = document.getElementById('sess-patterns').value;
+    UIController.showToast('✓ Заметки сохранены');
+  },
+
+  finishFullSession() {
+    const notes = [
+      this.currentData.notes && `${this.currentData.notes}`,
+      document.getElementById('sess-homework').value && `ДЗ: ${document.getElementById('sess-homework').value}`,
+      document.getElementById('sess-feedback').value && `ОС: ${document.getElementById('sess-feedback').value}`,
+    ].filter(Boolean).join('\n\n');
+
+    const sess = {
+      clientIdx: this.currentClient,
+      date: new Date().toISOString(),
+      techniques: [],
+      note: notes || document.getElementById('sess-next').value || '',
+      smr: this.currentData.smr || null,
+      quick: this.currentData.quick || null,
+    };
+
+    const sessions = Storage.getSessions();
+    sessions.push(sess);
+    Storage.setSessions(sessions);
+
+    this.currentData = {};
+    ['smr-situation','smr-thoughts','smr-emotions','smr-body','smr-behavior','smr-pu','smr-gu','q-situation','q-thoughts','q-gu-minus','q-other-reasons','q-gu-plus','sess-notes-text','sess-patterns','sess-homework','sess-next','sess-feedback'].forEach(id=>{const el=document.getElementById(id);if(el)el.value=''});
+
+    ClientController.openClient(this.currentClient);
+    UIController.showToast('✓ Сессия завершена');
+  },
+};
+
+// ═════════════════════════════════════════════════════════════════════════════════════
+// TECHNIQUES — ИСПРАВКА #5 — Единый источник данных техник КПТ
+// ═════════════════════════════════════════════════════════════════════════════════════
+
+const T = [
+  {n:'01',name:'Когнитивная реструктуризация',desc:'Замена искажённых мыслей на рациональные через логический анализ.',icon:'🧠'},
+  {n:'02',name:'Дневник мыслей (ABC)',desc:'Запись ситуации, мыслей и эмоций для анализа их связей.',icon:'📓'},
+  {n:'03',name:'Экспозиция',desc:'Контролируемое столкновение со страхом для снижения тревоги.',icon:'🌊'},
+  {n:'04',name:'Поведенческая активация',desc:'Планирование приятных занятий против апатии при депрессии.',icon:'⚡'},
+  {n:'05',name:'Сократовский диалог',desc:'Вопросы, помогающие найти противоречия в убеждениях.',icon:'💬'},
+  {n:'06',name:'Техника «Стрела вниз»',desc:'Углубление в суть убеждения для выхода на базовые установки.',icon:'🏹'},
+  {n:'07',name:'Поведенческие эксперименты',desc:'Проверка негативных предсказаний в реальных ситуациях.',icon:'🔬'},
+  {n:'08',name:'Релаксация',desc:'Прогрессивная мышечная релаксация и дыхательные техники.',icon:'🌿'},
+  {n:'09',name:'Решение проблем',desc:'Алгоритм: определить → варианты → оценить → действовать.',icon:'🗺'},
+  {n:'10',name:'Майндфулнес',desc:'Наблюдение за мыслями без оценки. Снижает руминацию.',icon:'🧘'},
+  {n:'11',name:'Работа с искажениями',desc:'Распознавание ошибок мышления: катастрофизация, обобщение.',icon:'🔍'},
+  {n:'12',name:'Техника «За и против»',desc:'Анализ плюсов и минусов убеждения для взвешенных решений.',icon:'⚖️'},
+  {n:'13',name:'Ролевые игры',desc:'Отработка социальных ситуаций в безопасной среде.',icon:'🎭'},
+  {n:'14',name:'Планирование и мониторинг',desc:'Расписание с отслеживанием настроения и удовольствия.',icon:'📅'},
+  {n:'15',name:'Самоинструктирование',desc:'Замена негативного монолога поддерживающими фразами.',icon:'💡'},
+  {n:'16',name:'Предотвращение рецидива',desc:'План действий на случай ухудшения, выявление триггеров.',icon:'🛡'},
+  {n:'17',name:'ЖПЗЦ',desc:'Структурированный сбор: Жалобы → Проблемы → Запрос → Цели.',icon:'📋'},
+  {n:'18',name:'СМЭР',desc:'Дневник ситуаций: Ситуация → Мысли → Эмоции → Реакции.',icon:'📝'},
+];
+
+const TDATA = [
+  { n:'01',icon:'🧠',name:'Когнитивная реструктуризация',tagline:'Замена искажённых мыслей',steps:['Выявите автоматическую мысль','Оцените интенсивность эмоции по шкале 0–100','Найдите доказательства «за» и «против»','Сформулируйте альтернативную мысль'],questions:['Какие факты подтверждают эту мысль?','Что вы сказали бы другу с такой же мыслью?'],tips:['Не торопитесь','Используйте сократовские вопросы','Записывайте мысли письменно'],tags:['Депрессия','Тревожные расстройства']},
+  { n:'02',icon:'📓',name:'Дневник мыслей (ABC)',tagline:'Запись ситуаций для выявления паттернов',steps:['A — запишите активирующее событие','B — зафиксируйте убеждения','C — опишите эмоциональные последствия','D — оспорьте дисфункциональные убеждения'],questions:['Что произошло?','О чём вы подумали?','Что почувствовали?'],tips:['Заполняйте сразу','Разбирайте дневники на сессиях','Ищите повторяющиеся паттерны'],tags:['Депрессия','Тревога']},
+  { n:'03',icon:'🌊',name:'Экспозиция',tagline:'Снижение тревоги через привыкание',steps:['Составьте иерархию страхов','Начните с ситуации 20–30 единиц','Оставайтесь до снижения тревоги на 50%','Повторяйте каждый уровень'],questions:['Чего именно вы боитесь?','Насколько вероятно это катастрофическое событие?'],tips:['Никогда не прерывайте экспозицию','Объясните привыкание заранее','Запрещайте защитное поведение'],tags:['Фобии','Панические атаки']},
+  { n:'04',icon:'⚡',name:'Поведенческая активация',tagline:'Разрыв цикла депрессивной инертности',steps:['Объясните связь между бездействием и ухудшением','Составьте список занятий приносивших удовольствие','Запланируйте 1–2 активности на неделю','Оценивайте удовольствие и достижение'],questions:['Чем вы занимались с удовольствием?','Замечаете ли связь между активностью и настроением?'],tips:['Начинайте с маленьких шагов','Фокус на поведении, не настроении','Отслеживайте активность в дневнике'],tags:['Депрессия','Апатия']},
+  { n:'05',icon:'💬',name:'Сократовский диалог',tagline:'Направленные вопросы к инсайту',steps:['Задайте открытый вопрос об убеждении','Попросите привести примеры','Исследуйте исключения','Помогите сформулировать новое понимание'],questions:['Как вы пришли к этому убеждению?','Всегда ли это так?','Что это означало бы если оказалось неверным?'],tips:['Никогда не навязывайте ответ','Молчание — ваш инструмент','Повторяйте слова клиента дословно'],tags:['Все расстройства']},
+  { n:'06',icon:'🏹',name:'Техника «Стрела вниз»',tagline:'Цепочка вопросов к глубинным убеждениям',steps:['Выявите автоматическую мысль','Спросите: «Если это правда — что это значит?»','Запишите ответ и повторите вопрос','Продолжайте до выхода на ГУ'],questions:['Если это правда — что это говорит о вас?','Что самое плохое в том что это так?'],tips:['Следите за нарастанием эмоций','Не торопитесь','Будьте готовы к сильному аффекту'],tags:['Глубинные убеждения']},
+  { n:'07',icon:'🔬',name:'Поведенческие эксперименты',tagline:'Проверка достоверности негативных предсказаний',steps:['Сформулируйте конкретное предсказание','Разработайте эксперимент','Клиент проводит эксперимент','Сравните предсказание и результат'],questions:['Что конкретно вы предсказываете?','Насколько вы в этом уверены?','Что нужно сделать чтобы проверить?'],tips:['Предсказание должно быть конкретным','Не выбирайте слишком сложные эксперименты','Неудачный эксперимент — ценная информация'],tags:['Социофобия','Тревога']},
+  { n:'08',icon:'🌿',name:'Релаксация',tagline:'Снижение физиологического возбуждения',steps:['Обучите диафрагмальному дыханию','Перейдите к прогрессивной мышечной релаксации','Напрягайте и расслабляйте группы мышц','Практикуйте быструю релаксацию'],questions:['Где в теле вы чувствуете тревогу?','Замечаете ли разницу между напряжением и расслаблением?'],tips:['Практикуйте вместе на сессии','Давайте аудиозаписи для дома','Объясните физиологию'],tags:['Тревога','Паника']},
+  { n:'09',icon:'🗺',name:'Решение проблем',tagline:'Структурированный алгоритм преодоления',steps:['Чётко определите проблему','Генерируйте все возможные решения','Оцените плюсы и минусы','Выберите решение и составьте план'],questions:['Что именно является проблемой?','Какие решения вы уже пробовали?','Если бы не было ограничений что бы вы сделали?'],tips:['Разделяйте решаемые проблемы и неизменяемые','При депрессии клиент зацикливается на оценке','Первый шаг должен быть маленьким'],tags:['Депрессия','Стресс']},
+  { n:'10',icon:'🧘',name:'Майндфулнес',tagline:'Осознанное наблюдение без оценки',steps:['Объясните концепцию мыслей как событий','Практикуйте фокусировку на дыхании','Учите технику замечать и отпускать мысли','Введите практику сканирования тела'],questions:['Что происходит когда вы просто наблюдаете мысль?','Как изменяется интенсивность переживания?'],tips:['Начинайте с коротких практик','Используйте приложения как поддержку','Майндфулнес — осознанное присутствие'],tags:['Депрессия','Тревога']},
+  { n:'11',icon:'🔍',name:'Работа с искажениями',tagline:'Распознавание типичных ошибок мышления',steps:['Составьте список когнитивных искажений','Ведите дневник с колонкой «тип искажения»','Назовите искажение вслух','Оспорьте искажение через реструктуризацию'],questions:['Вы видите ситуацию как все или ничего?','Вы делаете выводы о мыслях других?','Вы предсказываете будущее как заведомо плохое?'],tips:['Дайте карточку с перечнем искажений','Не превращайте в игру найди ошибку','Связывайте искажения с ситуациями'],tags:['Депрессия','Тревога']},
+  { n:'12',icon:'⚖️',name:'Техника «За и против»',tagline:'Взвешенный анализ издержек и выгод',steps:['Выберите убеждение для анализа','Нарисуйте таблицу 2×2','Заполните все четыре квадранта','Взвесьте итоги'],questions:['Какую выгоду вы получаете от этого убеждения?','Как это убеждение вредит долгосрочно?'],tips:['Особенно полезна при амбивалентности','Не давите пусть выводы будут собственными','Возвращайтесь к таблице при сопротивлении'],tags:['Все расстройства']},
+  { n:'13',icon:'🎭',name:'Ролевые игры',tagline:'Моделирование сложных социальных ситуаций',steps:['Выберите конкретную ситуацию','Опишите роли и контекст','Разыграйте ситуацию','Обсудите и повторите с новыми стратегиями'],questions:['Что именно вы боитесь сказать?','Как вы обычно реагируете что хотели бы изменить?'],tips:['Сначала сыграйте роль клиента сами','Видеозапись резко усиливает осознанность','Дебрифинг после игры обязателен'],tags:['Социофобия','Коммуникация']},
+  { n:'14',icon:'📅',name:'Планирование и мониторинг',tagline:'Структурирование недели с отслеживанием настроения',steps:['Разработайте недельную сетку','Клиент заполняет активности','После каждой оценивает удовольствие и достижение','Анализируйте паттерны'],questions:['Какие активности дали наибольшее удовольствие?','Были ли занятия где стало лучше чем ожидали?'],tips:['Начинайте с мониторинга','Ищите окна возможностей','Небольшие достижения важнее грандиозных планов'],tags:['Депрессия','Биполярное']},
+  { n:'15',icon:'💡',name:'Самоинструктирование',tagline:'Замена деструктивного внутреннего монолога',steps:['Выявите негативные фразы','Проанализируйте их влияние','Сформулируйте конкретные альтернативы','Практикуйте новые фразы'],questions:['Что вы говорите себе перед тревогой?','Что сказал бы вам поддерживающий друг?'],tips:['Фразы должны быть реалистичными','Практикуйте перед зеркалом','Используйте карточки'],tags:['Тревога','Перфекционизм']},
+  { n:'16',icon:'🛡',name:'Предотвращение рецидива',tagline:'Закрепление навыков и подготовка плана',steps:['Составьте список ранних признаков','Определите триггеры рецидива','Составьте письменный план действий','Повторите ключевые техники'],questions:['Какие признаки говорят что становится хуже?','Что помогло больше всего за терапию?'],tips:['Проводите в конце терапии','Набор инструментов должен быть письменным','Нормализуйте возможность временного ухудшения'],tags:['Завершение терапии']},
+  { n:'17',icon:'📋',name:'ЖПЗЦ',tagline:'Структурированная концептуализация случая',steps:['Ж — Зафиксируйте жалобы клиента','П — Переформулируйте в конкретные проблемы','З — Уточните запрос','Ц — Совместно сформулируйте измеримые цели'],questions:['Что именно вас беспокоит?','Как это влияет на разные сферы жизни?'],tips:['Заполняйте на первых 1–2 сессиях','Цели должны быть поведенческими и измеримыми','Возвращайтесь при потере фокуса'],tags:['Диагностика']},
+  { n:'18',icon:'📝',name:'СМЭР',tagline:'Дневник автоматических мыслей',steps:['С — Опишите конкретную ситуацию','М — Запишите автоматические мысли','Э — Назовите эмоции и оцените','Р — Зафиксируйте реакции'],questions:['Что произошло в тот момент?','Что пронеслось у вас в голове?','Что вы почувствовали в теле?'],tips:['Заполняйте сразу после ситуации','Поначалу заполняйте с психологом','Ищите повторяющиеся мысли'],tags:['Все расстройства']},
+];
+
+const TechniqueController = {
+  openTechniquesRef() {
+    const grid = document.getElementById('technique-grid-ref');
+    grid.innerHTML = T.map((t, i) => `
+      <div class="tc-wrap" onclick="TechniqueController.flipCard(this, ${i})">
+        <div class="tc-inner">
+          <div class="tc-front">
+            <div class="technique-num">${t.n}</div>
+            <div class="technique-name">${t.name}</div>
+            <div class="technique-desc">${t.desc}</div>
+            <div class="technique-icon">${t.icon}</div>
+          </div>
+          <div class="tc-back"><div class="tc-back-icon">${t.icon}</div></div>
+        </div>
+      </div>`).join('');
+    NavController.navTo('s-techniques');
+  },
+
+  flipCard(wrap, idx) {
+    wrap.classList.add('flipped');
+    setTimeout(() => { wrap.classList.remove('flipped'); this.openTModal(idx); }, 300);
+  },
+
+  openTModal(idx) {
+    const t = TDATA[idx];
+    document.getElementById('tmodal-content').innerHTML = `
+      <div class="tmodal-hero">
+        <div class="tmodal-hero-icon">${t.icon}</div>
+        <div class="tmodal-hero-text">
+          <div class="tmodal-num">Техника ${t.n}</div>
+          <div class="tmodal-title">${t.name}</div>
+          <div class="tmodal-tagline">${t.tagline}</div>
+        </div>
+        <button class="tmodal-close" onclick="TechniqueController.closeTModal()">
+          <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path d="M18 6 6 18M6 6l12 12"/></svg>
+        </button>
+      </div>
+      <div class="tmodal-body">
+        <div class="tmodal-section">
+          <div class="tmodal-section-title">Шаги применения</div>
+          <div class="tmodal-steps">${t.steps.map((s, i) => `<div class="tmodal-step"><div class="tmodal-step-num">${i + 1}</div><div class="tmodal-step-text">${s}</div></div>`).join('')}</div>
+        </div>
+        <div class="tmodal-section">
+          <div class="tmodal-section-title">Ключевые вопросы</div>
+          <div class="tmodal-questions">${t.questions.map(q => `<div class="tmodal-q">${q}</div>`).join('')}</div>
+        </div>
+        <div class="tmodal-section">
+          <div class="tmodal-section-title">Рекомендации психологу</div>
+          <div class="tmodal-tips">${t.tips.map(tip => `<div class="tmodal-tip">${tip}</div>`).join('')}</div>
+        </div>
+        <div class="tmodal-section">
+          <div class="tmodal-section-title">Применяется при</div>
+          <div class="tmodal-tags">${t.tags.map(tag => `<span class="tmodal-tag">${tag}</span>`).join('')}</div>
+        </div>
+      </div>`;
+    document.getElementById('tmodal-overlay').classList.add('open');
+  },
+
+  closeTModal() { document.getElementById('tmodal-overlay').classList.remove('open'); },
+};
+
+// ═════════════════════════════════════════════════════════════════════════════════════
+// CALENDAR CONTROLLER — Календарь и расписание
+// ═════════════════════════════════════════════════════════════════════════════════════
+
+const CalendarController = {
+  calY: 0, calM: 0, calDay: '',
+  MONTHS: ['Январь','Февраль','Март','Апрель','Май','Июнь','Июль','Август','Сентябрь','Октябрь','Ноябрь','Декабрь'],
+  WDS: ['Пн','Вт','Ср','Чт','Пт','Сб','Вс'],
+
+  openCalendar() {
+    const now = new Date(); this.calY = now.getFullYear(); this.calM = now.getMonth();
+    this.renderCal();
+    NavController.navTo('s-calendar');
+  },
+  calToday() { const n = new Date(); this.calY = n.getFullYear(); this.calM = n.getMonth(); this.renderCal(); },
+  calMove(d) { this.calM += d; if (this.calM < 0) { this.calM = 11; this.calY--; } if (this.calM > 11) { this.calM = 0; this.calY++; } this.renderCal(); },
+
+  renderCal() {
+    document.getElementById('cal-month').textContent = `${this.MONTHS[this.calM]} ${this.calY}`;
+    const today = new Date();
+    let html = this.WDS.map((d, i) => `<div class="cal-wd${i >= 5 ? ' wknd' : ''}">${d}</div>`).join('');
+    let dow = new Date(this.calY, this.calM, 1).getDay(); dow = dow === 0 ? 6 : dow - 1;
+    const dim = new Date(this.calY, this.calM + 1, 0).getDate();
+    const dip = new Date(this.calY, this.calM, 0).getDate();
+    const total = Math.ceil((dow + dim) / 7) * 7;
+    for (let i = 0; i < total; i++) {
+      let day, mo, yr, other = false;
+      if (i < dow) { day = dip - dow + i + 1; mo = this.calM - 1; yr = this.calY; if (mo < 0) { mo = 11; yr--; } other = true; }
+      else if (i >= dow + dim) { day = i - dow - dim + 1; mo = this.calM + 1; yr = this.calY; if (mo > 11) { mo = 0; yr++; } other = true; }
+      else { day = i - dow + 1; mo = this.calM; yr = this.calY; }
+      const ds = `${yr}-${String(mo + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+      const isToday = !other && day === today.getDate() && mo === today.getMonth() && yr === today.getFullYear();
+      const wknd = (dow + i) % 7 >= 5;
+      const past = new Date(yr, mo, day) < new Date(today.getFullYear(), today.getMonth(), today.getDate());
+      const evs = Storage.getAppointments().filter(a => a.date === ds).sort((a, b) => a.time.localeCompare(b.time));
+      const evsH = evs.map(a => {
+        const c = ClientController.clients[a.clientIdx];
+        const nm = c ? `${c.name}${c.surname ? ' ' + c.surname[0] + '.' : ''}` : '?';
+        const sn = 1;
+        return `<div class="cal-ev${past ? ' past' : ''}"><span class="ev-n">#${sn}</span><span>${a.time} ${nm}</span></div>`;
+      }).join('');
+      html += `<div class="cal-cell${other ? ' other' : ''}${isToday ? ' today' : ''}${wknd ? ' wknd' : ''}"${other ? '' : ` onclick="CalendarController.openCalDay('${ds}')"`}>
+        <div class="cal-dn">${day}</div>${evsH}</div>`;
+    }
+    document.getElementById('cal-grid').innerHTML = html;
+  },
+
+  openCalDay(ds) {
+    this.calDay = ds;
+    const d = new Date(ds + 'T12:00:00');
+    document.getElementById('cal-side-hd').textContent = d.toLocaleDateString('ru-RU', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
+    this.renderAppts();
+    const sel = document.getElementById('cal-client');
+    sel.innerHTML = ClientController.clients.length
+      ? ClientController.clients.map((c, i) => `<option value="${i}">${c.name}${c.surname ? ' ' + c.surname : ''}</option>`).join('')
+      : '<option value="">Нет клиентов</option>';
+    document.getElementById('cal-overlay').classList.add('open');
+  },
+
+  renderAppts() {
+    const list = Storage.getAppointments().filter(a => a.date === this.calDay).sort((a, b) => a.time.localeCompare(b.time));
+    document.getElementById('cal-appt-list').innerHTML = list.length
+      ? list.map(a => {
+        const c = ClientController.clients[a.clientIdx];
+        const nm = c ? `${c.name}${c.surname ? ' ' + c.surname : ''}` : 'Удалённый клиент';
+        const sn = 1;
+        const sc = Storage.getSessions().filter(s => s.clientIdx === a.clientIdx).length;
+        return `<div class="appt-item">
+          <div class="appt-time">${a.time}</div>
+          <div class="appt-info"><div class="appt-name">${nm}</div><div class="appt-badge">Сессия <strong>#${sn}</strong> · завершено: ${sc}</div></div>
+          <button class="appt-del" onclick="CalendarController.delAppt(${a.id})"><svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path d="M18 6 6 18M6 6l12 12"/></svg></button>
+        </div>`;
+      }).join('')
+      : '<div class="no-appts">Нет записей на этот день</div>';
+  },
+
+  addAppt() {
+    const time = document.getElementById('cal-time').value;
+    const ci = parseInt(document.getElementById('cal-client').value);
+    if (!this.calDay || isNaN(ci) || !time) return;
+    if (!Validators.isValidClientIndex(ci, ClientController.clients)) {
+      UIController.showToast('❌ Клиент не выбран');
+      return;
+    }
+    const appts = Storage.getAppointments();
+    appts.push({id:Date.now(),date:this.calDay,time,clientIdx:ci});
+    Storage.setAppointments(appts);
+    this.renderAppts();
+    this.renderCal();
+  },
+
+  delAppt(id) {
+    const appts = Storage.getAppointments().filter(a => a.id !== id);
+    Storage.setAppointments(appts);
+    this.renderAppts();
+    this.renderCal();
+  },
+
+  closeCalSide() { document.getElementById('cal-overlay').classList.remove('open'); },
+  closeSideIfBg(e) { if (e.target.id === 'cal-overlay') this.closeCalSide(); },
+};
+
+// ═════════════════════════════════════════════════════════════════════════════════════
+// ARCHIVE CONTROLLER — Архив клиентов
+// ═════════════════════════════════════════════════════════════════════════════════════
+
+const ArchiveController = {
+  openArchive() {
+    this.render();
+    NavController.navTo('s-archive');
+  },
+
+  render() {
+    const archived = ClientController.clients.filter(c => c.archived);
+    document.getElementById('archive-count-label').textContent = `${archived.length} ${Helpers.declination(archived.length,'клиент','клиента','клиентов')}`;
+    const g = document.getElementById('archive-grid');
+    if (!archived.length) {
+      g.innerHTML = `<div class="empty-state">
+        <svg width="52" height="52" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path d="M21 8v13a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8"/><path d="M1 3h22v5H1z"/></svg>
+        <p>Архив пуст</p>
+      </div>`;
+      return;
+    }
+    g.innerHTML = archived.map((c, i) => {
+      const idx = ClientController.clients.indexOf(c);
+      const age = Validators.calculateAge(c.dob);
+      const sc = Storage.getSessions().filter(s => s.clientIdx === idx).length;
+      const archivedDate = c.archivedAt ? new Date(c.archivedAt).toLocaleDateString('ru-RU',{day:'numeric',month:'long',year:'numeric'}) : '';
+      return `<div class="archive-card" onclick="ClientController.openClient(${idx})">
+        <div class="client-avatar">${Helpers.ini(c)}</div>
+        <div class="client-name">${c.name}${c.surname?' '+c.surname:''}</div>
+        <div class="client-meta">${age?age+' лет · ':''}${Helpers.truncate(c.complaint||'Нет запроса',55)}</div>
+        <div class="client-footer">
+          <span>Сессий: <strong>${sc}</strong>${archivedDate?' · Архив: '+archivedDate:''}</span>
+          <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="m9 18 6-6-6-6"/></svg>
+        </div>
+      </div>`;
+    }).join('');
+  },
+};
+
+// ═════════════════════════════════════════════════════════════════════════════════════
+// UI CONTROLLER — Управление интерфейсом
+// ═════════════════════════════════════════════════════════════════════════════════════
+
+const UIController = {
+  openClientModal() { document.getElementById('client-modal').classList.add('open'); },
+  closeClientModal() { document.getElementById('client-modal').classList.remove('open'); },
+  closeModalIfBg(e) { if (e.target.id === 'client-modal') this.closeClientModal(); },
+  closeTModalIfBg(e) { if (e.target.id === 'tmodal-overlay') TechniqueController.closeTModal(); },
+  closeTestIfBg(e) { if (e.target.id === 'test-overlay') TestController.closeTest(); },
+  closeConfirmIfBg(e) { if (e.target.id === 'confirm-overlay') this.closeConfirm(); },
+
+  openSidebar() {
+    const archived = ClientController.clients.filter(c=>c.archived).length;
+    document.getElementById('sidebar-body').innerHTML = `
+      <button class="sb-item" onclick="CalendarController.openCalendar();UIController.closeSidebar()">
+        <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>
+        Календарь сессий
+      </button>
+      <div class="sb-divider"></div>
+      <div class="sb-section-label">Инструменты</div>
+      <button class="sb-item" onclick="TechniqueController.openTechniquesRef();UIController.closeSidebar()">
+        <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M12 8v4l3 3"/></svg>
+        Техники КПТ
+      </button>
+      <div class="sb-divider"></div>
+      <div class="sb-section-label">Прочее</div>
+      <button class="sb-item" onclick="ArchiveController.openArchive();UIController.closeSidebar()">
+        <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M21 8v13a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8"/><path d="M1 3h22v5H1z"/></svg>
+        Архив ${archived > 0 ? `<span style="margin-left:auto;background:rgba(192,57,43,.15);color:var(--danger);font-size:11px;font-weight:700;padding:2px 8px;border-radius:50px">${archived}</span>` : ''}
+      </button>
+    `;
+    document.getElementById('sidebar-overlay').classList.add('open');
+  },
+
+  closeSidebar() { document.getElementById('sidebar-overlay').classList.remove('open'); },
+
+  showToast(msg) {
+    let t = document.getElementById('save-toast');
+    if (!t) {
+      t = document.createElement('div');
+      t.id = 'save-toast';
+      t.style.cssText = 'position:fixed;bottom:90px;left:50%;transform:translateX(-50%) translateY(20px);background:var(--accent);color:#fff;padding:10px 22px;border-radius:50px;font-family:Golos Text,sans-serif;font-size:13px;font-weight:600;z-index:999;opacity:0;transition:all .3s;pointer-events:none;';
+      document.body.appendChild(t);
+    }
+    t.textContent = msg;
+    t.style.opacity = '1';
+    t.style.transform = 'translateX(-50%) translateY(0)';
+    clearTimeout(t._timer);
+    t._timer = setTimeout(() => { t.style.opacity = '0'; t.style.transform = 'translateX(-50%) translateY(20px)'; }, 2200);
+  },
+
+  confirmArchive(idx) {
+    const c = ClientController.clients[idx];
+    const sc = Storage.getSessions().filter(s => s.clientIdx === idx).length;
+    document.getElementById('confirm-icon').textContent = '📦';
+    document.getElementById('confirm-title').textContent = `Перенести ${c.name} в архив?`;
+    document.getElementById('confirm-text').innerHTML = `Клиент будет перемещён в архив.<br><strong>Все ${sc} ${Helpers.declination(sc,'сессия','сессии','сессий')} и данные сохранятся.</strong><br>Вы сможете вернуть клиента в любой момент.`;
+    const btn = document.getElementById('confirm-ok-btn');
+    btn.textContent = 'Перенести в архив';
+    btn.style.cssText = 'background:var(--danger);color:#fff;padding:11px 22px;border-radius:50px;box-shadow:0 4px 14px rgba(192,57,43,.3)';
+    btn.onclick = () => { this.archiveClient(idx); this.closeConfirm(); };
+    document.getElementById('confirm-overlay').classList.add('open');
+  },
+
+  confirmRestore(idx) {
+    const c = ClientController.clients[idx];
+    document.getElementById('confirm-icon').textContent = '🔄';
+    document.getElementById('confirm-title').textContent = `Вернуть ${c.name} в картотеку?`;
+    document.getElementById('confirm-text').innerHTML = `Клиент будет возвращён в активную картотеку.<br><strong>Все данные и история сессий сохранены.</strong>`;
+    const btn = document.getElementById('confirm-ok-btn');
+    btn.textContent = 'Вернуть в картотеку';
+    btn.style.cssText = 'background:var(--accent);color:#fff;padding:11px 22px;border-radius:50px;box-shadow:0 4px 14px rgba(45,90,61,.3)';
+    btn.onclick = () => { this.restoreClient(idx); this.closeConfirm(); };
+    document.getElementById('confirm-overlay').classList.add('open');
+  },
+
+  archiveClient(idx) {
+    ClientController.clients[idx].archived = true;
+    ClientController.clients[idx].archivedAt = new Date().toISOString();
+    Storage.setClients(ClientController.clients);
+    ClientController.render();
+    NavController.navBack('s-clients');
+    this.showToast(`${ClientController.clients[idx].name} перенесён(а) в архив 📦`);
+  },
+
+  restoreClient(idx) {
+    ClientController.clients[idx].archived = false;
+    delete ClientController.clients[idx].archivedAt;
+    Storage.setClients(ClientController.clients);
+    ClientController.render();
+    ArchiveController.render();
+    ClientController.openClient(idx);
+    this.showToast(`${ClientController.clients[idx].name} возвращён(а) в картотеку ✓`);
+  },
+
+  closeConfirm() { document.getElementById('confirm-overlay').classList.remove('open'); },
+};
+
+// ═════════════════════════════════════════════════════════════════════════════════════
+// TEST CONTROLLER — Психологические тесты
+// ═════════════════════════════════════════════════════════════════════════════════════
+
+const TestController = {
+  closeTest() { document.getElementById('test-overlay').classList.remove('open'); },
+};
+
+// ═════════════════════════════════════════════════════════════════════════════════════
+// INIT — Инициализация приложения
+// ═════════════════════════════════════════════════════════════════════════════════════
+
+document.addEventListener('DOMContentLoaded', () => {
+  ClientController.init();
+});
+</script>
+</body>
+</html>
